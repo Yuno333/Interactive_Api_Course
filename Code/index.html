@@ -1,0 +1,1822 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>APIs for Beginners with Express.js — Complete Course</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --brand:#1a1a2e;--accent:#e94560;--accent2:#0f3460;--accent3:#16213e;
+  --green:#00d4aa;--yellow:#ffd700;--blue:#4fc3f7;--purple:#b464ff;
+  --bg:#0d0d1a;--surface:#12122a;--surface2:#1a1a35;--surface3:#22224a;
+  --text:#e8e8f0;--muted:#8888aa;--border:rgba(255,255,255,0.08);
+  --radius:10px;--radius-sm:6px;
+}
+html{scroll-behavior:smooth}
+body{font-family:'Outfit',sans-serif;color:var(--text);background:var(--bg);min-height:100vh;overflow-x:hidden}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:var(--surface)}
+::-webkit-scrollbar-thumb{background:var(--accent2);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--accent)}
+
+/* ── Layout ── */
+.app{display:flex;flex-direction:column;height:100vh;overflow:hidden}
+.topbar{
+  display:flex;align-items:center;gap:16px;padding:0 20px;height:56px;
+  background:var(--brand);border-bottom:1px solid var(--border);
+  flex-shrink:0;position:relative;z-index:10
+}
+.topbar-logo{font-size:18px;font-weight:700;color:#fff;letter-spacing:-0.5px}
+.topbar-logo span{color:var(--accent)}
+.topbar-sep{width:1px;height:24px;background:var(--border)}
+.topbar-progress{flex:1;max-width:300px}
+.progress-label{font-size:11px;color:var(--muted);margin-bottom:4px}
+.progress-bar{height:4px;background:var(--surface3);border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--blue));border-radius:2px;transition:width .4s ease}
+.topbar-count{font-size:12px;color:var(--muted);margin-left:auto}
+.topbar-count span{color:var(--text);font-weight:600}
+
+.main{display:flex;flex:1;overflow:hidden}
+
+/* ── Sidebar ── */
+.sidebar{
+  width:260px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);
+  overflow-y:auto;display:flex;flex-direction:column
+}
+.sidebar-group{padding:8px 0}
+.sidebar-group+.sidebar-group{border-top:1px solid var(--border)}
+.group-label{
+  font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;
+  color:var(--muted);padding:10px 16px 6px
+}
+.lesson-btn{
+  width:100%;background:none;border:none;cursor:pointer;text-align:left;
+  padding:8px 16px 8px 12px;display:flex;align-items:center;gap:10px;
+  font-family:'Outfit',sans-serif;font-size:13px;color:var(--muted);
+  transition:all .15s;border-left:2px solid transparent;position:relative
+}
+.lesson-btn:hover{background:var(--surface2);color:var(--text)}
+.lesson-btn.active{background:rgba(233,69,96,.1);color:var(--accent);border-left-color:var(--accent);font-weight:500}
+.lesson-btn.done{color:var(--muted)}
+.lesson-btn.done .lnum{background:var(--green)!important;color:#000!important}
+.lnum{
+  width:22px;height:22px;border-radius:50%;background:var(--surface3);
+  font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;color:var(--muted);transition:all .2s
+}
+.lesson-btn.active .lnum{background:var(--accent);color:#fff}
+.lesson-name{line-height:1.3}
+
+/* ── Content ── */
+.content{flex:1;overflow-y:auto;padding:32px 40px}
+.lesson-page{display:none;max-width:820px;margin:0 auto;animation:fadeIn .25s ease}
+.lesson-page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── Lesson Header ── */
+.lesson-header{margin-bottom:28px}
+.lesson-tag{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
+  padding:4px 12px;border-radius:20px;margin-bottom:12px
+}
+.tag-concept{background:rgba(79,195,247,.12);color:var(--blue);border:1px solid rgba(79,195,247,.3)}
+.tag-code{background:rgba(0,212,170,.12);color:var(--green);border:1px solid rgba(0,212,170,.3)}
+.tag-auth{background:rgba(255,215,0,.12);color:var(--yellow);border:1px solid rgba(255,215,0,.3)}
+.tag-deploy{background:rgba(233,69,96,.12);color:var(--accent);border:1px solid rgba(233,69,96,.3)}
+.tag-advanced{background:rgba(180,100,255,.12);color:var(--purple);border:1px solid rgba(180,100,255,.3)}
+.tag-project{background:rgba(0,212,170,.12);color:var(--green);border:1px solid rgba(0,212,170,.3)}
+
+.lesson-num-label{font-size:11px;color:var(--muted);margin-bottom:6px}
+.lesson-title{font-size:28px;font-weight:700;line-height:1.25;color:#fff;margin-bottom:10px}
+.lesson-desc{font-size:15px;color:var(--muted);line-height:1.7;max-width:680px}
+
+/* ── Section ── */
+.section{margin:24px 0}
+.section-title{
+  font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--muted);margin-bottom:14px;padding-bottom:8px;
+  border-bottom:1px solid var(--border)
+}
+
+/* ── Cards ── */
+.card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+.card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:16px;transition:border-color .2s}
+.card:hover{border-color:rgba(255,255,255,.15)}
+.card-icon{font-size:22px;margin-bottom:8px}
+.card-title{font-size:13px;font-weight:600;color:#fff;margin-bottom:6px}
+.card-text{font-size:12px;color:var(--muted);line-height:1.6}
+
+/* ── Status rows ── */
+.status-list{display:flex;flex-direction:column;gap:6px}
+.status-row{
+  display:flex;align-items:flex-start;gap:14px;padding:12px 16px;
+  background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm)
+}
+.scode{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;min-width:60px;padding-top:1px}
+.s2xx{color:var(--green)}.s3xx{color:var(--blue)}.s4xx{color:var(--yellow)}.s5xx{color:var(--accent)}.sinfo{color:var(--purple)}
+.sname{font-size:13px;font-weight:600;color:#fff;min-width:140px}
+.sdesc{font-size:12.5px;color:var(--muted);line-height:1.5}
+
+/* ── Code blocks ── */
+.code-block{
+  background:#0d1117;border:1px solid rgba(255,255,255,.08);
+  border-radius:var(--radius);overflow:hidden;margin:12px 0
+}
+.code-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 16px;background:#161b22;border-bottom:1px solid rgba(255,255,255,.05)
+}
+.code-lang{font-size:11px;color:#7d8590;font-family:'JetBrains Mono',monospace;font-weight:600}
+.code-dots{display:flex;gap:5px}
+.dot{width:10px;height:10px;border-radius:50%}
+.copy-btn{
+  font-size:11px;color:var(--muted);background:none;border:1px solid var(--border);
+  padding:3px 10px;border-radius:4px;cursor:pointer;font-family:'Outfit',sans-serif;
+  transition:all .15s
+}
+.copy-btn:hover{color:#fff;border-color:rgba(255,255,255,.3)}
+.copy-btn.copied{color:var(--green);border-color:var(--green)}
+pre{padding:20px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.75;color:#e6edf3;tab-size:2}
+
+/* ── Syntax highlight ── */
+.kw{color:#ff7b72}.str{color:#a5d6ff}.fn{color:#d2a8ff}.cm{color:#6e7681;font-style:italic}.num{color:#79c0ff}.obj{color:#ffa657}.br{color:#e6edf3}.hl{color:#e6edf3}
+
+/* ── Callouts ── */
+.callout{
+  padding:14px 18px;border-radius:var(--radius-sm);margin:12px 0;
+  border-left:3px solid;font-size:13.5px;line-height:1.7
+}
+.callout.info{background:rgba(79,195,247,.07);border-color:var(--blue)}
+.callout.warn{background:rgba(255,215,0,.07);border-color:var(--yellow)}
+.callout.tip{background:rgba(0,212,170,.07);border-color:var(--green)}
+.callout.danger{background:rgba(233,69,96,.07);border-color:var(--accent)}
+.callout strong{font-weight:600}
+
+/* ── Method badges ── */
+.method{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;padding:2px 9px;border-radius:4px}
+.GET{background:rgba(0,212,170,.15);color:var(--green)}
+.POST{background:rgba(79,195,247,.15);color:var(--blue)}
+.PUT{background:rgba(255,215,0,.15);color:var(--yellow)}
+.DELETE{background:rgba(233,69,96,.15);color:var(--accent)}
+.PATCH{background:rgba(180,100,255,.15);color:var(--purple)}
+.HEAD{background:rgba(136,136,170,.15);color:var(--muted)}
+
+/* ── Endpoint rows ── */
+.ep-list{display:flex;flex-direction:column;gap:6px}
+.ep-row{
+  display:flex;align-items:center;gap:12px;padding:10px 14px;
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--radius-sm);transition:border-color .15s
+}
+.ep-row:hover{border-color:rgba(255,255,255,.15)}
+.ep-path{font-family:'JetBrains Mono',monospace;font-size:12.5px;color:#fff;flex:1}
+.ep-desc{font-size:12px;color:var(--muted)}
+
+/* ── Flow ── */
+.flow-v{display:flex;flex-direction:column;gap:0}
+.flow-step{
+  padding:12px 18px;background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--radius-sm);font-size:13px
+}
+.flow-step.hl{background:rgba(233,69,96,.1);border-color:rgba(233,69,96,.4);color:var(--accent)}
+.flow-step.green{background:rgba(0,212,170,.1);border-color:rgba(0,212,170,.4);color:var(--green)}
+.flow-step.blue{background:rgba(79,195,247,.1);border-color:rgba(79,195,247,.4);color:var(--blue)}
+.flow-arrow{text-align:center;font-size:18px;color:var(--muted);padding:3px 0}
+
+/* ── Token display ── */
+.token-parts{display:flex;gap:4px;flex-wrap:wrap;margin:12px 0}
+.tp{padding:10px 14px;border-radius:var(--radius-sm);font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;flex:1;min-width:120px;text-align:center}
+.tp-h{background:rgba(233,69,96,.15);border:1px solid rgba(233,69,96,.3);color:var(--accent)}
+.tp-p{background:rgba(79,195,247,.15);border:1px solid rgba(79,195,247,.3);color:var(--blue)}
+.tp-s{background:rgba(0,212,170,.15);border:1px solid rgba(0,212,170,.3);color:var(--green)}
+.tp-dot{align-self:center;font-size:22px;font-weight:900;color:var(--muted)}
+.tp small{display:block;font-weight:400;opacity:.65;font-size:10px;margin-top:4px}
+
+/* ── Pills ── */
+.pill-group{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.pill{padding:5px 14px;border-radius:20px;font-size:12px;font-weight:500;background:var(--surface3);border:1px solid var(--border);color:var(--text)}
+.pill.green{background:rgba(0,212,170,.1);border-color:rgba(0,212,170,.3);color:var(--green)}
+.pill.red{background:rgba(233,69,96,.1);border-color:rgba(233,69,96,.3);color:var(--accent)}
+.pill.blue{background:rgba(79,195,247,.1);border-color:rgba(79,195,247,.3);color:var(--blue)}
+.pill.yellow{background:rgba(255,215,0,.1);border-color:rgba(255,215,0,.3);color:var(--yellow)}
+
+/* ── Table ── */
+.data-table{width:100%;border-collapse:collapse;font-size:13px}
+.data-table th{text-align:left;padding:10px 14px;background:var(--surface3);color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.5px}
+.data-table td{padding:10px 14px;border-top:1px solid var(--border);color:var(--text)}
+.data-table tr:hover td{background:var(--surface2)}
+.data-table code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--surface3);padding:2px 6px;border-radius:3px;color:var(--blue)}
+.table-wrap{border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+
+/* ── Nav ── */
+.lesson-nav{display:flex;justify-content:space-between;align-items:center;margin-top:36px;padding-top:20px;border-top:1px solid var(--border)}
+.nav-btn{
+  padding:10px 22px;border-radius:var(--radius-sm);font-size:13px;font-weight:500;
+  cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s;
+  border:1px solid var(--border);background:var(--surface2);color:var(--text)
+}
+.nav-btn:hover:not(:disabled){background:var(--surface3);border-color:rgba(255,255,255,.2)}
+.nav-btn:disabled{opacity:.35;cursor:not-allowed}
+.nav-btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.nav-btn.primary:hover{background:#c73450;border-color:#c73450}
+.nav-lesson-indicator{font-size:12px;color:var(--muted)}
+.nav-lesson-indicator span{color:var(--text);font-weight:600}
+
+/* ── Finish badge ── */
+.finish-banner{
+  background:linear-gradient(135deg,rgba(0,212,170,.15),rgba(79,195,247,.15));
+  border:1px solid rgba(0,212,170,.3);border-radius:var(--radius);
+  padding:24px;text-align:center;margin-top:20px
+}
+.finish-banner h3{font-size:22px;color:var(--green);margin-bottom:8px}
+.finish-banner p{color:var(--muted);font-size:14px;line-height:1.6}
+
+/* ── Instructor card (sidebar) ── */
+.instructor-card{
+  margin:auto 12px 12px;padding:14px;
+  background:linear-gradient(135deg,rgba(233,69,96,.08),rgba(79,195,247,.06));
+  border:1px solid rgba(233,69,96,.25);border-radius:var(--radius);
+}
+.instructor-avatar{
+  width:38px;height:38px;border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),var(--blue));
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;font-weight:700;color:#fff;flex-shrink:0
+}
+.instructor-top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.instructor-name{font-size:13px;font-weight:700;color:#fff;line-height:1.2}
+.instructor-role{font-size:10px;color:var(--muted);margin-top:2px}
+.instructor-bio{font-size:11px;color:var(--muted);line-height:1.55;margin-bottom:10px}
+.instructor-links{display:flex;flex-direction:column;gap:5px}
+.instructor-link{
+  display:flex;align-items:center;gap:7px;padding:5px 8px;
+  background:var(--surface3);border:1px solid var(--border);border-radius:6px;
+  font-size:11px;color:var(--muted);text-decoration:none;transition:all .15s
+}
+.instructor-link:hover{border-color:rgba(255,255,255,.2);color:var(--text)}
+.instructor-link svg{flex-shrink:0}
+
+/* ── Instructor section (lesson page) ── */
+.instructor-section{
+  background:linear-gradient(135deg,rgba(233,69,96,.07),rgba(79,195,247,.05));
+  border:1px solid rgba(233,69,96,.2);border-radius:var(--radius);
+  padding:24px;margin:28px 0
+}
+.instructor-section-top{display:flex;align-items:center;gap:16px;margin-bottom:16px}
+.instructor-avatar-lg{
+  width:56px;height:56px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,var(--accent),var(--blue));
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;font-weight:700;color:#fff
+}
+.instructor-section-name{font-size:18px;font-weight:700;color:#fff}
+.instructor-section-role{font-size:12px;color:var(--muted);margin-top:3px}
+.instructor-section-bio{font-size:14px;color:var(--muted);line-height:1.7;margin-bottom:18px}
+.courses-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;margin-bottom:18px}
+.course-pill{
+  padding:10px 14px;background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--radius-sm);font-size:12.5px;color:var(--text);
+  display:flex;align-items:center;gap:8px;font-weight:500
+}
+.course-pill span{font-size:16px}
+.contact-row{display:flex;gap:10px;flex-wrap:wrap}
+.contact-btn{
+  display:inline-flex;align-items:center;gap:8px;padding:9px 16px;
+  border-radius:var(--radius-sm);font-size:13px;font-weight:500;
+  text-decoration:none;transition:all .15s;border:1px solid
+}
+.contact-btn.x{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.15);color:#fff}
+.contact-btn.x:hover{background:rgba(255,255,255,.1)}
+.contact-btn.mail{background:rgba(233,69,96,.1);border-color:rgba(233,69,96,.35);color:var(--accent)}
+.contact-btn.mail:hover{background:rgba(233,69,96,.18)}
+
+/* ── Responsive ── */
+@media(max-width:768px){
+  .sidebar{width:220px}
+  .content{padding:20px}
+  .lesson-title{font-size:22px}
+}
+@media(max-width:580px){
+  .sidebar{display:none}
+  .content{padding:16px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-logo">API<span>Course</span></div>
+  <div class="topbar-sep"></div>
+  <div class="topbar-progress">
+    <div class="progress-label">Course Progress</div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:5%"></div></div>
+  </div>
+  <div class="topbar-count">Lesson <span id="lessonCounter">1</span> / 20</div>
+</div>
+
+<div class="main">
+
+<!-- SIDEBAR -->
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-group">
+    <div class="group-label">Fundamentals</div>
+    <button class="lesson-btn active" onclick="go(0)" id="btn0"><span class="lnum">1</span><span class="lesson-name">What is an API?</span></button>
+    <button class="lesson-btn" onclick="go(1)" id="btn1"><span class="lnum">2</span><span class="lesson-name">Types of APIs</span></button>
+    <button class="lesson-btn" onclick="go(2)" id="btn2"><span class="lnum">3</span><span class="lesson-name">REST APIs</span></button>
+    <button class="lesson-btn" onclick="go(3)" id="btn3"><span class="lnum">4</span><span class="lesson-name">Endpoints &amp; URL Design</span></button>
+    <button class="lesson-btn" onclick="go(4)" id="btn4"><span class="lnum">5</span><span class="lesson-name">Nested Data &amp; JSON</span></button>
+    <button class="lesson-btn" onclick="go(5)" id="btn5"><span class="lnum">6</span><span class="lesson-name">Sending Data to Backend</span></button>
+    <button class="lesson-btn" onclick="go(6)" id="btn6"><span class="lnum">7</span><span class="lesson-name">HTTP Status Codes</span></button>
+    <button class="lesson-btn" onclick="go(7)" id="btn7"><span class="lnum">8</span><span class="lesson-name">HTTP Methods</span></button>
+    <button class="lesson-btn" onclick="go(8)" id="btn8"><span class="lnum">9</span><span class="lesson-name">Client-Server Flow</span></button>
+  </div>
+  <div class="sidebar-group">
+    <div class="group-label">Express.js</div>
+    <button class="lesson-btn" onclick="go(9)" id="btn9"><span class="lnum">10</span><span class="lesson-name">Middleware</span></button>
+    <button class="lesson-btn" onclick="go(10)" id="btn10"><span class="lnum">11</span><span class="lesson-name">API Documentation</span></button>
+    <button class="lesson-btn" onclick="go(11)" id="btn11"><span class="lnum">12</span><span class="lesson-name">ORM Basics</span></button>
+    <button class="lesson-btn" onclick="go(12)" id="btn12"><span class="lnum">13</span><span class="lesson-name">API Pagination</span></button>
+  </div>
+  <div class="sidebar-group">
+    <div class="group-label">Auth &amp; Security</div>
+    <button class="lesson-btn" onclick="go(13)" id="btn13"><span class="lnum">14</span><span class="lesson-name">Auth vs Authz</span></button>
+    <button class="lesson-btn" onclick="go(14)" id="btn14"><span class="lnum">15</span><span class="lesson-name">Auth Types</span></button>
+    <button class="lesson-btn" onclick="go(15)" id="btn15"><span class="lnum">16</span><span class="lesson-name">How Tokens Work</span></button>
+    <button class="lesson-btn" onclick="go(16)" id="btn16"><span class="lnum">17</span><span class="lesson-name">JWTs Deep Dive</span></button>
+    <button class="lesson-btn" onclick="go(17)" id="btn17"><span class="lnum">18</span><span class="lesson-name">API Keys</span></button>
+  </div>
+  <div class="sidebar-group">
+    <div class="group-label">Project &amp; Deployment</div>
+    <button class="lesson-btn" onclick="go(18)" id="btn18"><span class="lnum">19</span><span class="lesson-name">Build the Blog API</span></button>
+    <button class="lesson-btn" onclick="go(19)" id="btn19"><span class="lnum">20</span><span class="lesson-name">Deployment</span></button>
+  </div>
+  <div class="instructor-card" style="margin-top:16px">
+    <div class="instructor-top">
+      <div class="instructor-avatar">R</div>
+      <div>
+        <div class="instructor-name">Rasheed Sanni</div>
+        <div class="instructor-role">CS Student &middot; Tech Educator &#127757;</div>
+      </div>
+    </div>
+    <div class="instructor-bio">Pioneering technology in Africa through education &mdash; making complex topics simple and accessible.</div>
+    <div class="instructor-links">
+      <a class="instructor-link" href="https://x.com/yuno_x999" target="_blank" rel="noopener">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+        @yuno_x999
+      </a>
+      <a class="instructor-link" href="mailto:rasheedsanni3@gmail.com">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+        Partnership enquiries
+      </a>
+    </div>
+  </div>
+</nav>
+
+<!-- CONTENT -->
+<main class="content" id="contentArea">
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- LESSON 1 -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="lesson-page active" id="lesson0">
+  <div class="lesson-header">
+    <div class="lesson-num-label">Lesson 1 of 20</div>
+    <span class="lesson-tag tag-concept">Concept</span>
+    <h1 class="lesson-title">What is an API?</h1>
+    <p class="lesson-desc">API stands for <strong>Application Programming Interface</strong> — it's the backbone of modern software. Almost every app you use daily relies on APIs to communicate with servers, fetch data, or connect to third-party services.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-title">The Restaurant Analogy</div>
+    <div class="card-grid">
+      <div class="card"><div class="card-icon">🍽️</div><div class="card-title">You (Client)</div><div class="card-text">Sit at the table and order from the menu — you don't care how the kitchen works.</div></div>
+      <div class="card"><div class="card-icon">📋</div><div class="card-title">API (Waiter)</div><div class="card-text">Takes your order to the kitchen and delivers the response back to your table.</div></div>
+      <div class="card"><div class="card-icon">🔥</div><div class="card-title">Server (Kitchen)</div><div class="card-text">Processes the request and prepares the response — all the logic lives here.</div></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Why APIs Matter — For Everyone</div>
+    <div class="card-grid">
+      <div class="card"><div class="card-title">📱 Mobile Apps</div><div class="card-text">Your weather app fetches live data through a weather API every time you open it.</div></div>
+      <div class="card"><div class="card-title">💳 Payments</div><div class="card-text">Stripe, Paystack, Flutterwave all expose APIs to process money securely.</div></div>
+      <div class="card"><div class="card-title">🤖 AI</div><div class="card-text">ChatGPT, Claude, Gemini — every AI product you use is accessed through an API.</div></div>
+      <div class="card"><div class="card-title">🔗 Integration</div><div class="card-text">Banks, logistics, hospitals — systems talk to each other through APIs 24/7.</div></div>
+    </div>
+  </div>
+
+  <div class="callout tip"><strong>Key insight:</strong> APIs let you build on top of existing services instead of rebuilding everything from scratch. You use the Twitter API to post tweets, not rebuild Twitter.</div>
+
+  <div class="section">
+    <div class="section-title">A Real API Request & Response</div>
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">HTTP</span><div class="code-dots"><div class="dot" style="background:#ff5f57"></div><div class="dot" style="background:#febc2e"></div><div class="dot" style="background:#28c840"></div></div><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      <pre><span class="cm">// CLIENT asks: "Give me user #42"</span>
+<span class="kw">GET</span> <span class="str">https://api.myapp.com/users/42</span>
+<span class="obj">Authorization:</span> <span class="str">Bearer eyJhbGciOiJIUzI1NiJ9...</span>
+<span class="obj">Content-Type:</span> <span class="str">application/json</span>
+
+<span class="cm">// SERVER responds:</span>
+<span class="kw">200</span> OK
+{
+  <span class="str">"id"</span>: <span class="num">42</span>,
+  <span class="str">"name"</span>: <span class="str">"Yuno Dev"</span>,
+  <span class="str">"email"</span>: <span class="str">"yuno@example.com"</span>,
+  <span class="str">"role"</span>: <span class="str">"admin"</span>
+}</pre>
+    </div>
+  </div>
+
+
+  <!-- Instructor intro -->
+  <div class="instructor-section">
+    <div class="instructor-section-top">
+      <div class="instructor-avatar-lg">R</div>
+      <div>
+        <div class="instructor-section-name">Rasheed Sanni</div>
+        <div class="instructor-section-role">CS Student &amp; Technology Educator &mdash; Building Africa&rsquo;s Next Generation of Developers</div>
+      </div>
+    </div>
+    <div class="instructor-section-bio">
+      Hey, welcome! I&rsquo;m Rasheed &mdash; a computer science student dedicated to pioneering technology education across Africa. My mission is simple: take complex engineering topics and make them genuinely accessible to everyone, regardless of background. This API course is just the beginning.
+    </div>
+    <div class="section-title" style="margin-bottom:10px">More courses coming</div>
+    <div class="courses-grid">
+      <div class="course-pill"><span>💻</span> Backend Dev</div>
+      <div class="course-pill"><span>💰</span> Fintech &amp; Blockchain</div>
+      <div class="course-pill"><span>⚙️</span> DevOps</div>
+      <div class="course-pill"><span>🤖</span> AI &amp; Machine Learning</div>
+    </div>
+    <div class="contact-row">
+      <a class="contact-btn x" href="https://x.com/yuno_x999" target="_blank" rel="noopener">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+        Follow on X
+      </a>
+      <a class="contact-btn mail" href="mailto:rasheedsanni3@gmail.com">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+        Partnership enquiries
+      </a>
+    </div>
+  </div>
+
+  <div class="lesson-nav">
+    <button class="nav-btn" disabled>← Previous</button>
+    <div class="nav-lesson-indicator">Lesson <span>1</span> of 20</div>
+    <button class="nav-btn primary" onclick="go(1)">Next: Types of APIs →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- LESSON 2 -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="lesson-page" id="lesson1">
+  <div class="lesson-header">
+    <div class="lesson-num-label">Lesson 2 of 20</div>
+    <span class="lesson-tag tag-concept">Concept</span>
+    <h1 class="lesson-title">Types of APIs</h1>
+    <p class="lesson-desc">Not all APIs are the same. They differ by access level, architecture, and protocol. Understanding the landscape helps you pick the right tool for every job.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-title">By Access Level</div>
+    <div class="card-grid">
+      <div class="card"><div class="card-title">🔓 Public APIs</div><div class="card-text">Open to everyone. Examples: OpenWeather, CoinGecko, GitHub API — often free with rate limits.</div></div>
+      <div class="card"><div class="card-title">🔒 Private APIs</div><div class="card-text">Internal use only. Your microservices talking to each other inside a company.</div></div>
+      <div class="card"><div class="card-title">🤝 Partner APIs</div><div class="card-text">Shared between specific businesses via agreements — e.g. a bank and a fintech startup.</div></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">By Architecture Style</div>
+    <div class="status-list">
+      <div class="status-row"><span class="scode s2xx">REST</span><span class="sname">Most popular</span><span class="sdesc">Uses HTTP, stateless, JSON. This is what we build in this course — powers 70%+ of web APIs.</span></div>
+      <div class="status-row"><span class="scode sinfo">GraphQL</span><span class="sname">Query language</span><span class="sdesc">Client specifies exactly what data it needs. Created by Meta, great for complex frontends.</span></div>
+      <div class="status-row"><span class="scode s4xx">gRPC</span><span class="sname">High performance</span><span class="sdesc">Binary protocol over HTTP/2. Used internally at Google, Netflix, and large microservice systems.</span></div>
+      <div class="status-row"><span class="scode" style="color:var(--muted)">SOAP</span><span class="sname">Legacy/enterprise</span><span class="sdesc">XML-based, verbose but reliable. Still common in banking, healthcare, and government.</span></div>
+      <div class="status-row"><span class="scode s3xx">WebSocket</span><span class="sname">Real-time</span><span class="sdesc">Persistent bidirectional connection. Chat apps, live scores, crypto price feeds.</span></div>
+    </div>
+  </div>
+
+  <div class="callout info"><strong>For this course:</strong> We focus exclusively on REST APIs with Express.js — the industry standard every developer should know first.</div>
+
+  <div class="lesson-nav">
+    <button class="nav-btn" onclick="go(0)">← Previous</button>
+    <div class="nav-lesson-indicator">Lesson <span>2</span> of 20</div>
+    <button class="nav-btn primary" onclick="go(2)">Next: REST APIs →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- LESSON 3 -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="lesson-page" id="lesson2">
+  <div class="lesson-header">
+    <div class="lesson-num-label">Lesson 3 of 20</div>
+    <span class="lesson-tag tag-concept">Concept</span>
+    <h1 class="lesson-title">REST APIs</h1>
+    <p class="lesson-desc">REST (Representational State Transfer) is an architectural style — a set of constraints for how web services should behave. It's not a protocol, it's a convention.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-title">The 6 REST Constraints</div>
+    <div class="status-list">
+      <div class="status-row"><span class="scode s2xx">1</span><span class="sname">Stateless</span><span class="sdesc">Every request contains ALL information needed. The server stores no session between requests.</span></div>
+      <div class="status-row"><span class="scode s2xx">2</span><span class="sname">Client-Server</span><span class="sdesc">Frontend and backend are completely separate — they can evolve independently.</span></div>
+      <div class="status-row"><span class="scode s2xx">3</span><span class="sname">Uniform Interface</span><span class="sdesc">Resources identified by URLs. Standard HTTP methods. Consistent response format.</span></div>
+      <div class="status-row"><span class="scode s2xx">4</span><span class="sname">Cacheable</span><span class="sdesc">Responses can be cached by clients/proxies to reduce server load and latency.</span></div>
+      <div class="status-row"><span class="scode s2xx">5</span><span class="sname">Layered System</span><span class="sdesc">Client doesn't know if it's talking to the real server, a cache, or a load balancer.</span></div>
+      <div class="status-row"><span class="scode s2xx">6</span><span class="sname">Code on Demand</span><span class="sdesc">Optional: server can send executable code (JavaScript) to clients.</span></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Resources — Think Nouns, Not Verbs</div>
+    <div class="callout warn"><strong>❌ Bad (RPC-style):</strong> &nbsp;<code>/getUser</code> &nbsp;&nbsp; <code>/createPost</code> &nbsp;&nbsp; <code>/deleteComment</code></div>
+    <div class="callout tip"><strong>✅ Good (REST-style):</strong> &nbsp;<code>/users</code> &nbsp;&nbsp; <code>/posts</code> &nbsp;&nbsp; <code>/comments</code> — the HTTP method tells the server what to do with the resource.</div>
+  </div>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">javascript — Express.js REST skeleton</span><div class="code-dots"><div class="dot" style="background:#ff5f57"></div><div class="dot" style="background:#febc2e"></div><div class="dot" style="background:#28c840"></div></div><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+    <pre><span class="kw">const</span> express = <span class="fn">require</span>(<span class="str">'express'</span>);
+<span class="kw">const</span> app = <span class="fn">express</span>();
+
+app.<span class="fn">use</span>(express.<span class="fn">json</span>()); <span class="cm">// Parse incoming JSON bodies</span>
+
+<span class="cm">// Resource: /users — all CRUD operations on one URL pattern</span>
+app.<span class="fn">get</span>(<span class="str">'/users'</span>, getAllUsers);       <span class="cm">// Read all</span>
+app.<span class="fn">post</span>(<span class="str">'/users'</span>, createUser);      <span class="cm">// Create</span>
+app.<span class="fn">get</span>(<span class="str">'/users/:id'</span>, getUser);      <span class="cm">// Read one</span>
+app.<span class="fn">put</span>(<span class="str">'/users/:id'</span>, replaceUser);   <span class="cm">// Replace</span>
+app.<span class="fn">patch</span>(<span class="str">'/users/:id'</span>, updateUser); <span class="cm">// Partial update</span>
+app.<span class="fn">delete</span>(<span class="str">'/users/:id'</span>, deleteUser); <span class="cm">// Delete</span>
+
+app.<span class="fn">listen</span>(<span class="num">3000</span>, () => console.<span class="fn">log</span>(<span class="str">'API live on port 3000'</span>));</pre>
+  </div>
+
+  <div class="lesson-nav">
+    <button class="nav-btn" onclick="go(1)">← Previous</button>
+    <div class="nav-lesson-indicator">Lesson <span>3</span> of 20</div>
+    <button class="nav-btn primary" onclick="go(3)">Next: Endpoints →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- LESSON 4 -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="lesson-page" id="lesson3">
+  <div class="lesson-header">
+    <div class="lesson-num-label">Lesson 4 of 20</div>
+    <span class="lesson-tag tag-concept">Concept</span>
+    <h1 class="lesson-title">Endpoints &amp; URL Design</h1>
+    <p class="lesson-desc">An endpoint is a specific URL + HTTP method combination your API exposes. Great URL design makes your API feel intuitive — developers can guess the right endpoint without checking docs.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Anatomy of an Endpoint URL</div>
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">URL breakdown</span><div class="code-dots"><div class="dot" style="background:#ff5f57"></div><div class="dot" style="background:#febc2e"></div><div class="dot" style="background:#28c840"></div></div></div>
+      <pre><span class="str">https://api.myapp.com</span><span class="obj">/v1</span><span class="kw">/users</span><span class="num">/42</span><span class="fn">/posts</span>
+      ↑                    ↑     ↑      ↑    ↑
+   Base URL           Version  Resource  ID   Sub-resource</pre>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Full Endpoint Map — Blog API</div>
+    <div class="ep-list">
+      <div class="ep-row"><span class="method GET">GET</span><span class="ep-path">/api/v1/posts</span><span class="ep-desc">Get all blog posts</span></div>
+      <div class="ep-row"><span class="method POST">POST</span><span class="ep-path">/api/v1/posts</span><span class="ep-desc">Create a new post</span></div>
+      <div class="ep-row"><span class="method GET">GET</span><span class="ep-path">/api/v1/posts/:id</span><span class="ep-desc">Get a single post by ID</span></div>
+      <div class="ep-row"><span class="method PUT">PUT</span><span class="ep-path">/api/v1/posts/:id</span><span class="ep-desc">Replace an entire post</span></div>
+      <div class="ep-row"><span class="method PATCH">PATCH</span><span class="ep-path">/api/v1/posts/:id</span><span class="ep-desc">Update specific fields only</span></div>
+      <div class="ep-row"><span class="method DELETE">DELETE</span><span class="ep-path">/api/v1/posts/:id</span><span class="ep-desc">Delete a post</span></div>
+      <div class="ep-row"><span class="method GET">GET</span><span class="ep-path">/api/v1/posts/:id/comments</span><span class="ep-desc">Get all comments on a post</span></div>
+      <div class="ep-row"><span class="method POST">POST</span><span class="ep-path">/api/v1/posts/:id/comments</span><span class="ep-desc">Add a comment to a post</span></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Query Parameters for Filtering</div>
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">javascript</span><div class="code-dots"><div class="dot" style="background:#ff5f57"></div><div class="dot" style="background:#febc2e"></div><div class="dot" style="background:#28c840"></div></div><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      <pre><span class="cm">// GET /api/v1/posts?category=tech&status=published&limit=10&page=2</span>
+
+app.<span class="fn">get</span>(<span class="str">'/api/v1/posts'</span>, (req, res) => {
+  <span class="kw">const</span> { category, status, limit = <span class="num">10</span>, page = <span class="num">1</span> } = req.query;
+  <span class="cm">// Use these to filter from database...</span>
+  res.<span class="fn">json</span>({ category, status, limit, page });
+});</pre>
+    </div>
+  </div>
+
+  <div class="lesson-nav">
+    <button class="nav-btn" onclick="go(2)">← Previous</button>
+    <div class="nav-lesson-indicator">Lesson <span>4</span> of 20</div>
+    <button class="nav-btn primary" onclick="go(4)">Next: Nested Data →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- LESSON 5 -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="lesson-page" id="lesson4">
+  <div class="lesson-header">
+    <div class="lesson-num-label">Lesson 5 of 20</div>
+    <span class="lesson-tag tag-concept">Concept</span>
+    <h1 class="lesson-title">Nested Data &amp; JSON Structure</h1>
+    <p class="lesson-desc">APIs speak JSON. How you structure nested objects — objects inside objects, arrays of objects — determines how easy (or painful) your API is to consume.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Flat vs Nested — Real Comparison</div>
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">json — ❌ flat (bad)</span><div class="code-dots"><div class="dot" style="background:#ff5f57"></div><div class="dot" style="background:#febc2e"></div><div class="dot" style="background:#28c840"></div></div></div>
+      <pre>{
+  <span class="str">"postId"</span>: <span class="num">1</span>,
+  <span class="str">"postTitle"</span>: <span class="str">"Hello World"</span>,
+  <span class="str">"authorId"</span>: <span class="num">42</span>,
+  <span class="str">"authorName"</span>: <span class="str">"Yuno Dev"</span>,
+  <span class="str">"commentId1"</span>: <span class="num">101</span>,
+  <span class="str">"commentText1"</span>: <span class="str">"Great post!"</span>,
+  <span class="str">"commentId2"</span>: <span class="num">102</span>,
+  <span class="str">"commentText2"</span>: <span class="str">"Thanks!"</span>
+}</pre>
+    </div>
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">json — ✅ nested (good)</span><div class="code-dots"><div class="dot" style="background:#ff5f57"></div><div class="dot" style="background:#febc2e"></div><div class="dot" style="background:#28c840"></div></div><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      <pre>{
+  <span class="str">"id"</span>: <span class="num">1</span>,
+  <span class="str">"title"</span>: <span class="str">"Hello World"</span>,
+  <span class="str">"author"</span>: {
+    <span class="str">"id"</span>: <span class="num">42</span>,
+    <span class="str">"name"</span>: <span class="str">"Yuno Dev"</span>,
+    <span class="str">"avatar"</span>: <span class="str">"https://cdn.app.com/avatars/42.jpg"</span>
+  },
+  <span class="str">"tags"</span>: [<span class="str">"javascript"</span>, <span class="str">"express"</span>, <span class="str">"api"</span>],
+  <span class="str">"comments"</span>: [
+    { <span class="str">"id"</span>: <span class="num">101</span>, <span class="str">"text"</span>: <span class="str">"Great post!"</span>, <span class="str">"likes"</span>: <span class="num">5</span> },
+    { <span class="str">"id"</span>: <span class="num">102</span>, <span class="str">"text"</span>: <span class="str">"Thanks!"</span>, <span class="str">"likes"</span>: <span class="num">2</span> }
+  ],
+  <span class="str">"meta"</span>: { <span class="str">"published"</span>: <span class="kw">true</span>, <span class="str">"readTime"</span>: <span class="num">5</span>, <span class="str">"createdAt"</span>: <span class="str">"2024-01-15T10:30:00Z"</span> }
+}</pre>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Standard Response Envelope</div>
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">javascript — consistent response wrapper</span><div class="code-dots"><div class="dot" style="background:#ff5f57"></div><div class="dot" style="background:#febc2e"></div><div class="dot" style="background:#28c840"></div></div><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      <pre><span class="cm">// Always wrap data with metadata — this is the professional standard</span>
+res.<span class="fn">json</span>({
+  <span class="str">"success"</span>: <span class="kw">true</span>,
+  <span class="str">"data"</span>: posts,            <span class="cm">// the actual payload</span>
+  <span class="str">"pagination"</span>: {
+    <span class="str">"total"</span>: <span class="num">100</span>,
+    <span class="str">"page"</span>: <span class="num">1</span>,
+    <span class="str">"perPage"</span>: <span class="num">10</span>,
+    <span class="str">"totalPages"</span>: <span class="num">10</span>
+  },
+  <span class="str">"message"</span>: <span class="str">"Posts fetched successfully"</span>
+});</pre>
+    </div>
+  </div>
+
+  <div class="lesson-nav">
+    <button class="nav-btn" onclick="go(3)">← Previous</button>
+    <div class="nav-lesson-indicator">Lesson <span>5</span> of 20</div>
+    <button class="nav-btn primary" onclick="go(5)">Next: Sending Data →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- LESSON 6 -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="lesson-page" id="lesson5">
+  <div class="lesson-header">
+    <div class="lesson-num-label">Lesson 6 of 20</div>
+    <span class="lesson-tag tag-code">Code</span>
+    <h1 class="lesson-title">How to Pass Data to the Backend</h1>
+    <p class="lesson-desc">There are four distinct ways to send data in an HTTP request. Knowing when to use each one is fundamental to designing correct, secure APIs.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-title">The 4 Ways to Send Data</div>
+    <div class="status-list">
+      <div class="status-row"><span class="scode s2xx">Params</span><span class="sname">Route Parameters</span><span class="sdesc"><code>/users/<strong>:id</strong></code> — identifies a specific resource. Always use for resource IDs.</span></div>
+      <div class="status-row"><span class="scode s3xx">Query</span><span class="sname">Query String</span><span class="sdesc"><code>/posts?<strong>page=2&amp;sort=asc</strong></code> — filtering, sorting, searching, pagination.</span></div>
+      <div class="status-row"><span class="scode s4xx">Body</span><span class="sname">Request Body</span><span class="sdesc">JSON payload in POST/PUT/PATCH. Used for creating or updating resources.</span></div>
+      <div class="status-row"><span class="scode sinfo">Headers</span><span class="sname">HTTP Headers</span><span class="sdesc">Authorization tokens, API keys, Content-Type — metadata and auth, not data.</span></div>
+    </div>
+  </div>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">javascript — accessing all 4 data sources in Express</span><div class="code-dots"><div class="dot" style="background:#ff5f57"></div><div class="dot" style="background:#febc2e"></div><div class="dot" style="background:#28c840"></div></div><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+    <pre><span class="cm">// Route: POST /api/v1/users/:id/posts?notify=true</span>
+app.<span class="fn">post</span>(<span class="str">'/api/v1/users/:id/posts'</span>, (req, res) => {
+
+  <span class="cm">// 1. Route parameters → req.params</span>
+  <span class="kw">const</span> userId = req.params.id;      <span class="cm">// "42"</span>
+
+  <span class="cm">// 2. Query string → req.query</span>
+  <span class="kw">const</span> notify = req.query.notify;   <span class="cm">// "true"</span>
+
+  <span class="cm">// 3. Request body → req.body  (requires express.json())</span>
+  <span class="kw">const</span> { title, content, tags } = req.body;
+
+  <span class="cm">// 4. Headers → req.headers</span>
+  <span class="kw">const</span> token  = req.headers[<span class="str">'authorization'</span>]; <span class="cm">// "Bearer eyJ..."</span>
+  <span class="kw">const</span> apiKey = req.headers[<span class="str">'x-api-key'</span>];
+
+  res.<span class="fn">status</span>(<span class="num">201</span>).<span class="fn">json</span>({ userId, notify, title, content, tags });
+});</pre>
+  </div>
+
+  <div class="callout warn"><strong>Security rule:</strong> Never put sensitive data in query strings — they appear in server logs, browser history, and referrer headers. Auth tokens always go in headers.</div>
+
+  <div class="lesson-nav">
+    <button class="nav-btn" onclick="go(4)">← Previous</button>
+    <div class="nav-lesson-indicator">Lesson <span>6</span> of 20</div>
+    <button class="nav-btn primary" onclick="go(6)">Next: Status Codes →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- LESSON 7 -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="lesson-page" id="lesson6">
+  <div class="lesson-header">
+    <div class="lesson-num-label">Lesson 7 of 20</div>
+    <span class="lesson-tag tag-concept">Concept</span>
+    <h1 class="lesson-title">HTTP Status Codes</h1>
+    <p class="lesson-desc">Status codes are 3-digit numbers your API returns to tell the client exactly what happened. They're the universal language between client and server — use them precisely.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-title">2xx — Success</div>
+    <div class="status-list">
+      <div class="status-row"><span class="scode s2xx">200</span><span class="sname">OK</span><span class="sdesc">Generic success. Use for GET, PUT, PATCH responses.</span></div>
+      <div class="status-row"><span class="scode s2xx">201</span><span class="sname">Created</span><span class="sdesc">Resource created successfully. Always use after a successful POST.</span></div>
+      <div class="status-row"><span class="scode s2xx">204</span><span class="sname">No Content</span><span class="sdesc">Success but nothing to return. Perfect for DELETE — no body needed.</span></div>
+    </div>
+  </div>
+  <div class="section">
+    <div class="section-title">3xx — Redirect</div>
+    <div class="status-list">
+      <div class="status-row"><span class="scode s3xx">301</span><span class="sname">Moved Permanently</span><span class="sdesc">URL changed forever. Clients and search engines should update their links.</span></div>
+      <div class="status-row"><span class="scode s3xx">304</span><span class="sname">Not Modified</span><span class="sdesc">Cached version is still valid — no need to resend the body.</span></div>
+    </div>
+  </div>
+  <div class="section">
+    <div class="section-title">4xx — Client Errors (their fault)</div>
+    <div class="status-list">
+      <div class="status-row"><span class="scode s4xx">400</span><span class="sname">Bad Request</span><span class="sdesc">Malformed JSON, missing required fields, invalid data format.</span></div>
+      <div class="status-row"><span class="scode s4xx">401</span><span class="sname">Unauthorized</span><span class="sdesc">Not authenticated — missing, expired, or invalid token. Please log in.</span></div>
+      <div class="status-row"><span class="scode s4xx">403</span><span class="sname">Forbidden</span><span class="sdesc">Authenticated but lacking permission. You're logged in but this isn't yours.</span></div>
+      <div class="status-row"><span class="scode s4xx">404</span><span class="sname">Not Found</span><span class="sdesc">Resource doesn't exist at this URL. Check the ID.</span></div>
+      <div class="status-row"><span class="scode s4xx">409</span><span class="sname">Conflict</span><span class="sdesc">Duplicate entry — email already exists, username taken.</span></div>
+      <div class="status-row"><span class="scode s4xx">422</span><span class="sname">Unprocessable</span><span class="sdesc">Validation failed — format is valid JSON but the values break business rules.</span></div>
+      <div class="status-row"><span class="scode s4xx">429</span><span class="sname">Too Many Requests</span><span class="sdesc">Rate limit exceeded — slow down or upgrade your plan.</span></div>
+    </div>
+  </div>
+  <div class="section">
+    <div class="section-title">5xx — Server Errors (your fault)</div>
+    <div class="status-list">
+      <div class="status-row"><span class="scode s5xx">500</span><span class="sname">Internal Server Error</span><span class="sdesc">Something crashed on the server. This is always a bug you need to fix.</span></div>
+      <div class="status-row"><span class="scode s5xx">503</span><span class="sname">Service Unavailable</span><span class="sdesc">Server is down, overloaded, or in maintenance mode.</span></div>
+    </div>
+  </div>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">javascript — correct status code usage in Express</span><div class="code-dots"><div class="dot" style="background:#ff5f57"></div><div class="dot" style="background:#febc2e"></div><div class="dot" style="background:#28c840"></div></div><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+    <pre>app.<span class="fn">get</span>(<span class="str">'/users/:id'</span>, <span class="kw">async</span> (req, res) => {
+  <span class="kw">const</span> user = <span class="kw">await</span> User.<span class="fn">findById</span>(req.params.id);
+  <span class="kw">if</span> (!user) <span class="kw">return</span> res.<span class="fn">status</span>(<span class="num">404</span>).<span class="fn">json</span>({ error: <span class="str">'User not found'</span> });
+  res.<span class="fn">status</span>(<span class="num">200</span>).<span class="fn">json</span>({ success: <span class="kw">true</span>, data: user });
+});
+
+app.<span class="fn">post</span>(<span class="str">'/users'</span>, <span class="kw">async</span> (req, res) => {
+  <span class="kw">const</span> user = <span class="kw">await</span> User.<span class="fn">create</span>(req.body);
+  res.<span class="fn">status</span>(<span class="num">201</span>).<span class="fn">json</span>({ success: <span class="kw">true</span>, data: user });
+});
+
+app.<span class="fn">delete</span>(<span class="str">'/users/:id'</span>, <span class="kw">async</span> (req, res) => {
+  <span class="kw">await</span> User.<span class="fn">findByIdAndDelete</span>(req.params.id);
+  res.<span class="fn">status</span>(<span class="num">204</span>).<span class="fn">send</span>(); <span class="cm">// 204 = no body</span>
+});</pre>
+  </div>
+
+  <div class="lesson-nav">
+    <button class="nav-btn" onclick="go(5)">← Previous</button>
+    <div class="nav-lesson-indicator">Lesson <span>7</span> of 20</div>
+    <button class="nav-btn primary" onclick="go(7)">Next: HTTP Methods →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- LESSON 8 -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="lesson-page" id="lesson7">
+  <div class="lesson-header">
+    <div class="lesson-num-label">Lesson 8 of 20</div>
+    <span class="lesson-tag tag-concept">Concept</span>
+    <h1 class="lesson-title">HTTP Methods (Request Categories)</h1>
+    <p class="lesson-desc">HTTP methods tell the server what action to perform on a resource. Each has a specific meaning and expected behavior — this predictability is what makes REST so powerful.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Method Reference Table</div>
+    <div class="table-wrap">
+      <table class="data-table">
+        <tr><th>Method</th><th>CRUD Action</th><th>Safe?</th><th>Idempotent?</th><th>Has Body?</th><th>Response</th></tr>
+        <tr><td><span class="method GET">GET</span></td><td>Read</td><td>✅ Yes</td><td>✅ Yes</td><td>❌ No</td><td>200 + data</td></tr>
+        <tr><td><span class="method POST">POST</span></td><td>Create</td><td>❌ No</td><td>❌ No</td><td>✅ Yes</td><td>201 + created</td></tr>
+        <tr><td><span class="method PUT">PUT</span></td><td>Replace all</td><td>❌ No</td><td>✅ Yes</td><td>✅ Yes</td><td>200 + updated</td></tr>
+        <tr><td><span class="method PATCH">PATCH</span></td><td>Update partial</td><td>❌ No</td><td>⚠️ Sometimes</td><td>✅ Yes</td><td>200 + updated</td></tr>
+        <tr><td><span class="method DELETE">DELETE</span></td><td>Remove</td><td>❌ No</td><td>✅ Yes</td><td>Rare</td><td>204 no body</td></tr>
+        <tr><td><span class="method HEAD">HEAD</span></td><td>Read (headers only)</td><td>✅ Yes</td><td>✅ Yes</td><td>❌ No</td><td>200 no body</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="callout info"><strong>Idempotent</strong> means calling it 10 times gives the same result as 1 time. GET /users/42 always returns the same user. DELETE /users/42 deletes once — subsequent calls return 404, but the <em>state</em> is the same: the user is gone.</div>
+
+  <div class="section">
+    <div class="section-title">PUT vs PATCH — The Most Confused Pair</div>
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">javascript</span><div class="code-dots"><div class="dot" style="background:#ff5f57"></div><div class="dot" style="background:#febc2e"></div><div class="dot" style="background:#28c840"></div></div><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      <pre><span class="cm">// PUT — replace the ENTIRE resource (must send all fields)</span>
+<span class="cm">// PUT /users/42  →  body must include name, email, role, bio, etc.</span>
+{ <span class="str">"name"</span>: <span class="str">"New Name"</span>, <span class="str">"email"</span>: <span class="str">"new@email.com"</span>, <span class="str">"role"</span>: <span class="str">"admin"</span> }
+
+<span class="cm">// PATCH — update ONLY the specified fields, merge with existing</span>
+<span class="cm">// PATCH /users/42  →  only name changes, everything else stays</span>
+{ <span class="str">"name"</span>: <span class="str">"New Name"</span> }
+
+<span class="cm">// Express PATCH handler:</span>
+app.<span class="fn">patch</span>(<span class="str">'/users/:id'</span>, <span class="kw">async</span> (req, res) => {
+  <span class="kw">const</span> user = <span class="kw">await</span> User.<span class="fn">findByIdAndUpdate</span>(
+    req.params.id,
+    { $<span class="fn">set</span>: req.body },  <span class="cm">// merge — don't replace</span>
+    { <span class="obj">new</span>: <span class="kw">true</span> }
+  );
+  res.<span class="fn">json</span>({ success: <span class="kw">true</span>, data: user });
+});</pre>
+    </div>
+  </div>
+
+  <div class="lesson-nav">
+    <button class="nav-btn" onclick="go(6)">← Previous</button>
+    <div class="nav-lesson-indicator">Lesson <span>8</span> of 20</div>
+    <button class="nav-btn primary" onclick="go(8)">Next: Client Flow →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- LESSON 9 -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="lesson-page" id="lesson8">
+  <div class="lesson-header">
+    <div class="lesson-num-label">Lesson 9 of 20</div>
+    <span class="lesson-tag tag-concept">Concept</span>
+    <h1 class="lesson-title">Client-Server Flow</h1>
+    <p class="lesson-desc">Understanding the full journey of an API request — from browser click to database query and back — helps you debug problems and design better systems from day one.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Full Request Lifecycle</div>
+    <div class="flow-v">
+      <div class="flow-step blue">1. Client sends HTTP request (browser, mobile app, Postman, curl)</div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step">2. DNS resolves domain → finds the server's IP address</div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step">3. TCP handshake + TLS (HTTPS encryption handshake)</div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step hl">4. Express receives request → runs middleware chain (logger, auth, validate)</div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step">5. Route handler runs → queries database, executes business logic</div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step green">6. Response sent back with status code + JSON payload</div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step blue">7. Client receives response → renders UI or handles the error</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Making API Calls from the Frontend</div>
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">javascript — fetch API (browser / Node.js)</span><div class="code-dots"><div class="dot" style="background:#ff5f57"></div><div class="dot" style="background:#febc2e"></div><div class="dot" style="background:#28c840"></div></div><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      <pre><span class="kw">async function</span> <span class="fn">createPost</span>(postData) {
+  <span class="kw">try</span> {
+    <span class="kw">const</span> response = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">'https://api.myapp.com/posts'</span>, {
+      method: <span class="str">'POST'</span>,
+      headers: {
+        <span class="str">'Content-Type'</span>: <span class="str">'application/json'</span>,
+        <span class="str">'Authorization'</span>: <span class="str">`Bearer ${localStorage.<span class="fn">getItem</span>('token')}`</span>
+      },
+      body: JSON.<span class="fn">stringify</span>(postData)
+    });
+
+    <span class="kw">if</span> (!response.ok) {
+      <span class="kw">const</span> error = <span class="kw">await</span> response.<span class="fn">json</span>();
+      <span class="kw">throw new</span> <span class="fn">Error</span>(error.message || <span class="str">`HTTP ${response.status}`</span>);
+    }
+
+    <span class="kw">return await</span> response.<span class="fn">json</span>();
+  } <span class="kw">catch</span> (err) {
+    console.<span class="fn">error</span>(<span class="str">'API Error:'</span>, err.message);
+    <span class="kw">throw</span> err; <span class="cm">// rethrow so the UI can handle it</span>
+  }
+}</pre>
+    </div>
+  </div>
+
+  <div class="lesson-nav">
+    <button class="nav-btn" onclick="go(7)">← Previous</button>
+    <div class="nav-lesson-indicator">Lesson <span>9</span> of 20</div>
+    <button class="nav-btn primary" onclick="go(9)">Next: Middleware →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- LESSON 10 -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="lesson-page" id="lesson9">
+  <div class="lesson-header">
+    <div class="lesson-num-label">Lesson 10 of 20</div>
+    <span class="lesson-tag tag-code">Code</span>
+    <h1 class="lesson-title">Middleware in Express</h1>
+    <p class="lesson-desc">Middleware is code that runs between receiving a request and sending a response. It's the most powerful pattern in Express — the entire framework is built around it.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-title">The Middleware Pipeline</div>
+    <div class="flow-v">
+      <div class="flow-step blue">Incoming Request</div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step">Logger — logs method, URL, timestamp</div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step">CORS — sets access control headers</div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step">Auth — validates JWT token</div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step">Validation — checks request body</div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step hl">Route Handler — business logic + DB query</div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step green">Response sent to client</div>
+    </div>
+  </div>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">javascript — all middleware patterns</span><div class="code-dots"><div class="dot" style="background:#ff5f57"></div><div class="dot" style="background:#febc2e"></div><div class="dot" style="background:#28c840"></div></div><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+    <pre><span class="cm">// 1. Global middleware (runs on every request)</span>
+app.<span class="fn">use</span>(express.<span class="fn">json</span>());   <span class="cm">// parse JSON bodies</span>
+app.<span class="fn">use</span>(<span class="fn">cors</span>());            <span class="cm">// allow cross-origin requests</span>
+app.<span class="fn">use</span>(<span class="fn">helmet</span>());         <span class="cm">// set security headers</span>
+
+<span class="cm">// 2. Custom logger middleware</span>
+<span class="kw">const</span> logger = (req, res, next) => {
+  console.<span class="fn">log</span>(<span class="str">`[${new Date().toISOString()}] ${req.method} ${req.url}`</span>);
+  <span class="fn">next</span>(); <span class="cm">// CRITICAL: must call next() or request hangs forever</span>
+};
+app.<span class="fn">use</span>(logger);
+
+<span class="cm">// 3. Auth middleware — protect specific routes</span>
+<span class="kw">const</span> requireAuth = (req, res, next) => {
+  <span class="kw">const</span> token = req.headers.authorization?.<span class="fn">split</span>(<span class="str">' '</span>)[<span class="num">1</span>];
+  <span class="kw">if</span> (!token) <span class="kw">return</span> res.<span class="fn">status</span>(<span class="num">401</span>).<span class="fn">json</span>({ error: <span class="str">'No token'</span> });
+  <span class="kw">try</span> {
+    req.user = jwt.<span class="fn">verify</span>(token, process.env.JWT_SECRET);
+    <span class="fn">next</span>();
+  } <span class="kw">catch</span> {
+    res.<span class="fn">status</span>(<span class="num">401</span>).<span class="fn">json</span>({ error: <span class="str">'Invalid token'</span> });
+  }
+};
+
+<span class="cm">// Apply to specific routes only</span>
+app.<span class="fn">get</span>(<span class="str">'/profile'</span>, requireAuth, getProfile);
+app.<span class="fn">post</span>(<span class="str">'/posts'</span>, requireAuth, createPost);
+
+<span class="cm">// 4. Global error handler (MUST have 4 params, always last)</span>
+app.<span class="fn">use</span>((err, req, res, next) => {
+  console.<span class="fn">error</span>(err.stack);
+  res.<span class="fn">status</span>(err.status || <span class="num">500</span>).<span class="fn">json</span>({ error: err.message });
+});</pre>
+  </div>
+
+  <div class="lesson-nav">
+    <button class="nav-btn" onclick="go(8)">← Previous</button>
+    <div class="nav-lesson-indicator">Lesson <span>10</span> of 20</div>
+    <button class="nav-btn primary" onclick="go(10)">Next: API Docs →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- LESSON 11 -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="lesson-page" id="lesson10">
+  <div class="lesson-header">
+    <div class="lesson-num-label">Lesson 11 of 20</div>
+    <span class="lesson-tag tag-concept">Concept</span>
+    <h1 class="lesson-title">API Documentation &amp; Specs</h1>
+    <p class="lesson-desc">Good documentation is what separates a usable API from an unusable one. The OpenAPI Specification (Swagger) is the industry standard every developer should know.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-title">What Good API Docs Include</div>
+    <div class="card-grid">
+      <div class="card"><div class="card-title">Endpoints</div><div class="card-text">Every URL, method, description, and example request/response pair.</div></div>
+      <div class="card"><div class="card-title">Authentication</div><div class="card-text">How to get a token, where to pass it, what scopes and permissions exist.</div></div>
+      <div class="card"><div class="card-title">Error Codes</div><div class="card-text">All possible errors with causes, error codes, and how to resolve them.</div></div>
+      <div class="card"><div class="card-title">Rate Limits</div><div class="card-text">Requests per minute/hour, what happens when exceeded, how to handle 429s.</div></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Swagger / OpenAPI in Express</div>
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">bash — install</span><div class="code-dots"><div class="dot" style="background:#ff5f57"></div><div class="dot" style="background:#febc2e"></div><div class="dot" style="background:#28c840"></div></div><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      <pre>npm install swagger-ui-express swagger-jsdoc</pre>
+    </div>
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">javascript — swagger setup + JSDoc annotation</span><div class="code-dots"><div class="dot" style="background:#ff5f57"></div><div class="dot" style="background:#febc2e"></div><div class="dot" style="background:#28c840"></div></div><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      <pre><span class="kw">const</span> swaggerJsdoc = <span class="fn">require</span>(<span class="str">'swagger-jsdoc'</span>);
+<span class="kw">const</span> swaggerUi   = <span class="fn">require</span>(<span class="str">'swagger-ui-express'</span>);
+
+<span class="kw">const</span> options = {
+  definition: {
+    openapi: <span class="str">'3.0.0'</span>,
+    info: { title: <span class="str">'Blog API'</span>, version: <span class="str">'1.0.0'</span>,
+            description: <span class="str">'A complete blog REST API'</span> },
+    servers: [{ url: <span class="str">'https://api.myblog.com/v1'</span> }],
+  },
+  apis: [<span class="str">'./src/routes/*.js'</span>],
+};
+
+<span class="kw">const</span> specs = <span class="fn">swaggerJsdoc</span>(options);
+app.<span class="fn">use</span>(<span class="str">'/api-docs'</span>, swaggerUi.serve, swaggerUi.<span class="fn">setup</span>(specs));
+
+<span class="cm">/**
+ * @swagger
+ * /posts:
+ *   get:
+ *     summary: Get all blog posts
+ *     tags: [Posts]
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema: { type: integer, default: 1 }
+ *     responses:
+ *       200:
+ *         description: Paginated list of posts
+ */</span>
+app.<span class="fn">get</span>(<span class="str">'/posts'</span>, getAllPosts);</pre>
+    </div>
+  </div>
+
+  <div class="callout tip"><strong>Tools to know:</strong> Postman (test + document), Bruno (open-source Postman alt), Insomnia (testing), Swagger UI (interactive browser), Redoc (beautiful static docs).</div>
+
+  <div class="lesson-nav">
+    <button class="nav-btn" onclick="go(9)">← Previous</button>
+    <div class="nav-lesson-indicator">Lesson <span>11</span> of 20</div>
+    <button class="nav-btn primary" onclick="go(11)">Next: ORM →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- LESSON 12 -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="lesson-page" id="lesson11">
+  <div class="lesson-header">
+    <div class="lesson-num-label">Lesson 12 of 20</div>
+    <span class="lesson-tag tag-code">Code</span>
+    <h1 class="lesson-title">ORM — Database Layer</h1>
+    <p class="lesson-desc">An ORM (Object-Relational Mapper) lets you interact with databases using JavaScript instead of raw SQL. Prisma is the modern standard for Node.js APIs — type-safe, intuitive, and powerful.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Raw SQL vs ORM</div>
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">javascript — raw SQL (complex + error-prone)</span><div class="code-dots"><div class="dot" style="background:#ff5f57"></div><div class="dot" style="background:#febc2e"></div><div class="dot" style="background:#28c840"></div></div></div>
+      <pre><span class="kw">const</span> result = <span class="kw">await</span> db.<span class="fn">query</span>(
+  <span class="str">'SELECT u.*, p.* FROM users u JOIN posts p ON p.author_id = u.id WHERE u.email = $1 AND u.active = true'</span>,
+  [email]
+);</pre>
+    </div>
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">javascript — Prisma ORM (clean + type-safe)</span><div class="code-dots"><div class="dot" style="background:#ff5f57"></div><div class="dot" style="background:#febc2e"></div><div class="dot" style="background:#28c840"></div></div></div>
+      <pre><span class="kw">const</span> user = <span class="kw">await</span> prisma.user.<span class="fn">findFirst</span>({
+  where: { email, active: <span class="kw">true</span> },
+  include: { posts: <span class="kw">true</span> }
+});</pre>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Prisma with Express — Full CRUD</div>
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">javascript — all CRUD operations</span><div class="code-dots"><div class="dot" style="background:#ff5f57"></div><div class="dot" style="background:#febc2e"></div><div class="dot" style="background:#28c840"></div></div><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      <pre><span class="kw">const</span> { PrismaClient } = <span class="fn">require</span>(<span class="str">'@prisma/client'</span>);
+<span class="kw">const</span> prisma = <span class="kw">new</span> <span class="fn">PrismaClient</span>();
+
+<span class="cm">// READ ALL — with author JOIN + comment count</span>
+app.<span class="fn">get</span>(<span class="str">'/posts'</span>, <span class="kw">async</span> (req, res) => {
+  <span class="kw">const</span> posts = <span class="kw">await</span> prisma.post.<span class="fn">findMany</span>({
+    include: { author: <span class="kw">true</span>, _count: { select: { comments: <span class="kw">true</span> } } },
+    orderBy: { createdAt: <span class="str">'desc'</span> }
+  });
+  res.<span class="fn">json</span>({ success: <span class="kw">true</span>, data: posts });
+});
+
+<span class="cm">// CREATE</span>
+app.<span class="fn">post</span>(<span class="str">'/posts'</span>, requireAuth, <span class="kw">async</span> (req, res) => {
+  <span class="kw">const</span> post = <span class="kw">await</span> prisma.post.<span class="fn">create</span>({
+    data: { ...req.body, authorId: req.user.id }
+  });
+  res.<span class="fn">status</span>(<span class="num">201</span>).<span class="fn">json</span>({ success: <span class="kw">true</span>, data: post });
+});
+
+<span class="cm">// UPDATE (PATCH)</span>
+app.<span class="fn">patch</span>(<span class="str">'/posts/:id'</span>, requireAuth, <span class="kw">async</span> (req, res) => {
+  <span class="kw">const</span> post = <span class="kw">await</span> prisma.post.<span class="fn">update</span>({
+    where: { id: <span class="fn">parseInt</span>(req.params.id) },
+    data: req.body
+  });
+  res.<span class="fn">json</span>({ success: <span class="kw">true</span>, data: post });
+});
+
+<span class="cm">// DELETE</span>
+app.<span class="fn">delete</span>(<span class="str">'/posts/:id'</span>, requireAuth, <span class="kw">async</span> (req, res) => {
+  <span class="kw">await</span> prisma.post.<span class="fn">delete</span>({ where: { id: <span class="fn">parseInt</span>(req.params.id) } });
+  res.<span class="fn">status</span>(<span class="num">204</span>).<span class="fn">send</span>();
+});</pre>
+    </div>
+  </div>
+
+  <div class="lesson-nav">
+    <button class="nav-btn" onclick="go(10)">← Previous</button>
+    <div class="nav-lesson-indicator">Lesson <span>12</span> of 20</div>
+    <button class="nav-btn primary" onclick="go(12)">Next: Pagination →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- LESSON 13 -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="lesson-page" id="lesson12">
+  <div class="lesson-header">
+    <div class="lesson-num-label">Lesson 13 of 20</div>
+    <span class="lesson-tag tag-advanced">Advanced</span>
+    <h1 class="lesson-title">API Pagination</h1>
+    <p class="lesson-desc">Never return all records at once — it kills performance. Pagination breaks large datasets into manageable chunks. There are three main strategies, each with real tradeoffs.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Types of Pagination</div>
+    <div class="status-list">
+      <div class="status-row"><span class="scode s2xx">Offset</span><span class="sname">Page-based</span><span class="sdesc"><code>?page=2&limit=10</code> — Simple, predictable. Can miss/duplicate records if data changes during browsing.</span></div>
+      <div class="status-row"><span class="scode s3xx">Cursor</span><span class="sname">Pointer-based</span><span class="sdesc"><code>?cursor=eyJpZCI6MTAwfQ</code> — Stable, efficient. Perfect for infinite scroll feeds (Twitter, Instagram).</span></div>
+      <div class="status-row"><span class="scode s4xx">Keyset</span><span class="sname">Range-based</span><span class="sdesc"><code>?after_id=100</code> — Fastest for sorted data. Used by most high-performance social feeds and APIs.</span></div>
+    </div>
+  </div>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">javascript — offset pagination (most common)</span><div class="code-dots"><div class="dot" style="background:#ff5f57"></div><div class="dot" style="background:#febc2e"></div><div class="dot" style="background:#28c840"></div></div><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+    <pre>app.<span class="fn">get</span>(<span class="str">'/posts'</span>, <span class="kw">async</span> (req, res) => {
+  <span class="kw">const</span> page  = parseInt(req.query.page)  || <span class="num">1</span>;
+  <span class="kw">const</span> limit = parseInt(req.query.limit) || <span class="num">10</span>;
+  <span class="kw">const</span> skip  = (page - <span class="num">1</span>) * limit;
+
+  <span class="kw">const</span> [posts, total] = <span class="kw">await</span> Promise.<span class="fn">all</span>([
+    prisma.post.<span class="fn">findMany</span>({ skip, take: limit, orderBy: { createdAt: <span class="str">'desc'</span> } }),
+    prisma.post.<span class="fn">count</span>()
+  ]);
+
+  res.<span class="fn">json</span>({
+    success: <span class="kw">true</span>, data: posts,
+    pagination: {
+      page, limit, total,
+      totalPages: Math.<span class="fn">ceil</span>(total / limit),
+      hasNext: page * limit < total,
+      hasPrev: page > <span class="num">1</span>
+    }
+  });
+});</pre>
+  </div>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">javascript — cursor pagination (infinite scroll)</span><div class="code-dots"><div class="dot" style="background:#ff5f57"></div><div class="dot" style="background:#febc2e"></div><div class="dot" style="background:#28c840"></div></div><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+    <pre>app.<span class="fn">get</span>(<span class="str">'/posts'</span>, <span class="kw">async</span> (req, res) => {
+  <span class="kw">const</span> { cursor, limit = <span class="num">10</span> } = req.query;
+
+  <span class="kw">const</span> posts = <span class="kw">await</span> prisma.post.<span class="fn">findMany</span>({
+    take: <span class="fn">parseInt</span>(limit) + <span class="num">1</span>,     <span class="cm">// fetch 1 extra to check hasNext</span>
+    skip: cursor ? <span class="num">1</span> : <span class="num">0</span>,
+    cursor: cursor ? { id: <span class="fn">parseInt</span>(cursor) } : <span class="kw">undefined</span>,
+    orderBy: { id: <span class="str">'desc'</span> }
+  });
+
+  <span class="kw">const</span> hasNext = posts.length > parseInt(limit);
+  <span class="kw">if</span> (hasNext) posts.<span class="fn">pop</span>(); <span class="cm">// remove the extra item</span>
+
+  res.<span class="fn">json</span>({
+    data: posts,
+    nextCursor: hasNext ? posts[posts.length - <span class="num">1</span>]?.id : <span class="kw">null</span>
+  });
+});</pre>
+  </div>
+
+  <div class="lesson-nav">
+    <button class="nav-btn" onclick="go(11)">← Previous</button>
+    <div class="nav-lesson-indicator">Lesson <span>13</span> of 20</div>
+    <button class="nav-btn primary" onclick="go(13)">Next: Auth Concepts →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- LESSON 14 -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="lesson-page" id="lesson13">
+  <div class="lesson-header">
+    <div class="lesson-num-label">Lesson 14 of 20</div>
+    <span class="lesson-tag tag-auth">Auth</span>
+    <h1 class="lesson-title">Authentication vs Authorization</h1>
+    <p class="lesson-desc">These two words are constantly confused but mean completely different things. Mixing them up leads to serious security bugs. Get this distinction locked in.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-title">The Core Difference</div>
+    <div class="card-grid">
+      <div class="card" style="border-color:rgba(79,195,247,.4)">
+        <div class="card-icon">🪪</div>
+        <div class="card-title" style="color:var(--blue)">Authentication (AuthN)</div>
+        <div class="card-text"><strong>"Who are you?"</strong> — Verifying identity. Login, signup, token validation, biometrics. Proves you are who you claim to be.</div>
+      </div>
+      <div class="card" style="border-color:rgba(255,215,0,.4)">
+        <div class="card-icon">🛡️</div>
+        <div class="card-title" style="color:var(--yellow)">Authorization (AuthZ)</div>
+        <div class="card-text"><strong>"What can you do?"</strong> — Checking permissions after identity is confirmed. Roles, scopes, policies, ownership checks.</div>
+      </div>
+    </div>
+    <div class="callout info"><strong>Analogy:</strong> Authentication is showing your ID at the door (proving who you are). Authorization is the bouncer checking you're on the VIP list (what you're allowed to do).</div>
+  </div>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">javascript — RBAC (Role-Based Access Control)</span><div class="code-dots"><div class="dot" style="background:#ff5f57"></div><div class="dot" style="background:#febc2e"></div><div class="dot" style="background:#28c840"></div></div><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+    <pre><span class="cm">// requireAuth = authentication (who are you?)</span>
+<span class="cm">// requireRole = authorization (what can you do?)</span>
+
+<span class="kw">const</span> requireRole = (...roles) => (req, res, next) => {
+  <span class="kw">if</span> (!roles.<span class="fn">includes</span>(req.user.role)) {
+    <span class="kw">return</span> res.<span class="fn">status</span>(<span class="num">403</span>).<span class="fn">json</span>({ error: <span class="str">'Forbidden: insufficient permissions'</span> });
+  }
+  <span class="fn">next</span>();
+};
+
+<span class="cm">// Only admins can delete users</span>
+app.<span class="fn">delete</span>(<span class="str">'/users/:id'</span>, requireAuth, <span class="fn">requireRole</span>(<span class="str">'admin'</span>), deleteUser);
+
+<span class="cm">// Admins and moderators can ban posts</span>
+app.<span class="fn">post</span>(<span class="str">'/posts/:id/ban'</span>, requireAuth, <span class="fn">requireRole</span>(<span class="str">'admin'</span>, <span class="str">'mod'</span>), banPost);
+
+<span class="cm">// Anyone authenticated can create a post</span>
+app.<span class="fn">post</span>(<span class="str">'/posts'</span>, requireAuth, createPost);</pre>
+  </div>
+
+  <div class="lesson-nav">
+    <button class="nav-btn" onclick="go(12)">← Previous</button>
+    <div class="nav-lesson-indicator">Lesson <span>14</span> of 20</div>
+    <button class="nav-btn primary" onclick="go(14)">Next: Auth Types →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- LESSON 15 -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="lesson-page" id="lesson14">
+  <div class="lesson-header">
+    <div class="lesson-num-label">Lesson 15 of 20</div>
+    <span class="lesson-tag tag-auth">Auth</span>
+    <h1 class="lesson-title">Types of Authentication</h1>
+    <p class="lesson-desc">There are five authentication strategies in common use. Choosing the right one depends on your use case — user app, B2B, machine-to-machine, or third-party login.</p>
+  </div>
+
+  <div class="status-list">
+    <div class="status-row"><span class="scode s2xx">JWT</span><span class="sname">Token-based</span><span class="sdesc">Self-contained signed tokens. Stateless. Best for SPAs, mobile apps, and microservices.</span></div>
+    <div class="status-row"><span class="scode s3xx">Session</span><span class="sname">Cookie-based</span><span class="sdesc">Server stores session in DB/Redis. Stateful. Classic web apps. Needs sticky sessions for scaling.</span></div>
+    <div class="status-row"><span class="scode s4xx">API Key</span><span class="sname">Key-based</span><span class="sdesc">Static tokens for machine-to-machine. Server-to-server calls, public API access, webhooks.</span></div>
+    <div class="status-row"><span class="scode sinfo">OAuth 2.0</span><span class="sname">Delegated auth</span><span class="sdesc">"Login with Google/GitHub" — user grants your app scoped access to their data on another service.</span></div>
+    <div class="status-row"><span class="scode s5xx">Basic Auth</span><span class="sname">Username+password</span><span class="sdesc">Base64-encoded in header. Only for internal/dev tools. Never in production over HTTP.</span></div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">OAuth 2.0 Flow (Simplified)</div>
+    <div class="flow-v">
+      <div class="flow-step blue">1. User clicks "Login with Google"</div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step">2. Your server redirects to Google's OAuth consent screen</div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step">3. User approves → Google redirects back with a short-lived auth code</div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step hl">4. Your server exchanges the code for Google access + refresh tokens</div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step">5. Fetch user profile from Google using access token</div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step green">6. Create/find user in your DB → issue your own JWT to the client</div>
+    </div>
+  </div>
+
+  <div class="lesson-nav">
+    <button class="nav-btn" onclick="go(13)">← Previous</button>
+    <div class="nav-lesson-indicator">Lesson <span>15</span> of 20</div>
+    <button class="nav-btn primary" onclick="go(15)">Next: How Tokens Work →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- LESSON 16 -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="lesson-page" id="lesson15">
+  <div class="lesson-header">
+    <div class="lesson-num-label">Lesson 16 of 20</div>
+    <span class="lesson-tag tag-auth">Auth</span>
+    <h1 class="lesson-title">How Tokens Work</h1>
+    <p class="lesson-desc">Tokens replace passwords for every request after login. They're a secure, stateless way to prove identity without sending credentials repeatedly over the wire.</p>
+  </div>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">javascript — login endpoint that issues tokens</span><div class="code-dots"><div class="dot" style="background:#ff5f57"></div><div class="dot" style="background:#febc2e"></div><div class="dot" style="background:#28c840"></div></div><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+    <pre>app.<span class="fn">post</span>(<span class="str">'/auth/login'</span>, <span class="kw">async</span> (req, res) => {
+  <span class="kw">const</span> { email, password } = req.body;
+  <span class="kw">const</span> user = <span class="kw">await</span> prisma.user.<span class="fn">findUnique</span>({ where: { email } });
+
+  <span class="kw">if</span> (!user || !<span class="kw">await</span> bcrypt.<span class="fn">compare</span>(password, user.passwordHash)) {
+    <span class="kw">return</span> res.<span class="fn">status</span>(<span class="num">401</span>).<span class="fn">json</span>({ error: <span class="str">'Invalid credentials'</span> });
+  }
+
+  <span class="cm">// Access token — short-lived (15min). Sent in every request header.</span>
+  <span class="kw">const</span> accessToken = jwt.<span class="fn">sign</span>(
+    { id: user.id, email: user.email, role: user.role },
+    process.env.JWT_SECRET,
+    { expiresIn: <span class="str">'15m'</span> }
+  );
+
+  <span class="cm">// Refresh token — long-lived (7d). Used ONLY to get new access tokens.</span>
+  <span class="kw">const</span> refreshToken = jwt.<span class="fn">sign</span>(
+    { id: user.id },
+    process.env.REFRESH_SECRET,
+    { expiresIn: <span class="str">'7d'</span> }
+  );
+
+  <span class="cm">// Store refresh token in httpOnly cookie (not localStorage!)</span>
+  res.<span class="fn">cookie</span>(<span class="str">'refreshToken'</span>, refreshToken, {
+    httpOnly: <span class="kw">true</span>, secure: <span class="kw">true</span>, sameSite: <span class="str">'strict'</span>, maxAge: <span class="num">7</span> * <span class="num">24</span> * <span class="num">60</span> * <span class="num">60</span> * <span class="num">1000</span>
+  });
+
+  res.<span class="fn">json</span>({ accessToken, user: { id: user.id, email, role: user.role } });
+});</pre>
+  </div>
+
+  <div class="callout warn"><strong>Access vs Refresh tokens:</strong> Access tokens expire fast (15min) for security. When they expire, the client silently uses the refresh token (in an httpOnly cookie) to get a new access token — no re-login needed. If the refresh token expires, the user logs in again.</div>
+
+  <div class="callout danger"><strong>Never store tokens in localStorage</strong> — they're vulnerable to XSS attacks. Store refresh tokens in httpOnly cookies, and keep access tokens only in memory.</div>
+
+  <div class="lesson-nav">
+    <button class="nav-btn" onclick="go(14)">← Previous</button>
+    <div class="nav-lesson-indicator">Lesson <span>16</span> of 20</div>
+    <button class="nav-btn primary" onclick="go(16)">Next: JWTs Deep Dive →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- LESSON 17 -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="lesson-page" id="lesson16">
+  <div class="lesson-header">
+    <div class="lesson-num-label">Lesson 17 of 20</div>
+    <span class="lesson-tag tag-auth">Auth</span>
+    <h1 class="lesson-title">JWTs Deep Dive</h1>
+    <p class="lesson-desc">A JWT (JSON Web Token) is a compact, URL-safe token made of three Base64-encoded parts separated by dots. It's self-contained — no database lookup needed to validate it.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-title">JWT Structure — Three Parts</div>
+    <div class="token-parts">
+      <div class="tp tp-h">eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9<small>Header — algo + type</small></div>
+      <div class="tp-dot">.</div>
+      <div class="tp tp-p">eyJpZCI6NDIsImVtYWlsIjoieXVub0BleGFtcGxlLmNvbSIsInJvbGUiOiJ1c2VyIn0<small>Payload — your data (claims)</small></div>
+      <div class="tp-dot">.</div>
+      <div class="tp tp-s">SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c<small>Signature — tamper proof</small></div>
+    </div>
+  </div>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">javascript — decoded JWT internals</span><div class="code-dots"><div class="dot" style="background:#ff5f57"></div><div class="dot" style="background:#febc2e"></div><div class="dot" style="background:#28c840"></div></div></div>
+    <pre><span class="cm">// HEADER — algorithm and token type</span>
+{ <span class="str">"alg"</span>: <span class="str">"HS256"</span>, <span class="str">"typ"</span>: <span class="str">"JWT"</span> }
+
+<span class="cm">// PAYLOAD — your data (claims). Standard + custom.</span>
+{
+  <span class="str">"id"</span>: <span class="num">42</span>,
+  <span class="str">"email"</span>: <span class="str">"yuno@example.com"</span>,
+  <span class="str">"role"</span>: <span class="str">"admin"</span>,
+  <span class="str">"iat"</span>: <span class="num">1706000000</span>,   <span class="cm">// issued at (Unix timestamp)</span>
+  <span class="str">"exp"</span>: <span class="num">1706000900</span>    <span class="cm">// expires at (15 min later)</span>
+}
+
+<span class="cm">// SIGNATURE — HMAC-SHA256(base64(header) + "." + base64(payload) + secret)</span>
+<span class="cm">// If ANYONE tampers with the payload, the signature becomes invalid</span></pre>
+  </div>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">javascript — sign and verify JWTs</span><div class="code-dots"><div class="dot" style="background:#ff5f57"></div><div class="dot" style="background:#febc2e"></div><div class="dot" style="background:#28c840"></div></div><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+    <pre><span class="kw">const</span> jwt = <span class="fn">require</span>(<span class="str">'jsonwebtoken'</span>);
+<span class="kw">const</span> SECRET = process.env.JWT_SECRET; <span class="cm">// never hardcode secrets!</span>
+
+<span class="cm">// Sign — create a token</span>
+<span class="kw">const</span> token = jwt.<span class="fn">sign</span>(
+  { id: <span class="num">42</span>, role: <span class="str">'admin'</span> },
+  SECRET,
+  { expiresIn: <span class="str">'15m'</span>, issuer: <span class="str">'myapp.com'</span> }
+);
+
+<span class="cm">// Verify — validate and decode</span>
+<span class="kw">try</span> {
+  <span class="kw">const</span> decoded = jwt.<span class="fn">verify</span>(token, SECRET);
+  console.<span class="fn">log</span>(decoded.id);    <span class="cm">// 42</span>
+  console.<span class="fn">log</span>(decoded.role);  <span class="cm">// 'admin'</span>
+} <span class="kw">catch</span> (err) {
+  <span class="kw">if</span> (err.name === <span class="str">'TokenExpiredError'</span>) { <span class="cm">/* use refresh token */</span> }
+  <span class="kw">if</span> (err.name === <span class="str">'JsonWebTokenError'</span>) { <span class="cm">/* invalid token */</span> }
+}</pre>
+  </div>
+
+  <div class="callout danger"><strong>JWT is NOT encrypted.</strong> Anyone can Base64-decode the payload and read it. The signature only proves it wasn't tampered with. Never put passwords, credit cards, or secrets in the payload.</div>
+
+  <div class="lesson-nav">
+    <button class="nav-btn" onclick="go(15)">← Previous</button>
+    <div class="nav-lesson-indicator">Lesson <span>17</span> of 20</div>
+    <button class="nav-btn primary" onclick="go(17)">Next: API Keys →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- LESSON 18 -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="lesson-page" id="lesson17">
+  <div class="lesson-header">
+    <div class="lesson-num-label">Lesson 18 of 20</div>
+    <span class="lesson-tag tag-auth">Auth</span>
+    <h1 class="lesson-title">API Keys</h1>
+    <p class="lesson-desc">API keys are static tokens for machine-to-machine authentication. They're simpler than JWT but need careful implementation — rate limiting, hashing, and rotation.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-title">API Key vs JWT — When to Use Which</div>
+    <div class="table-wrap">
+      <table class="data-table">
+        <tr><th>Factor</th><th>API Key</th><th>JWT</th></tr>
+        <tr><td>Identifies</td><td>An application / integration</td><td>A specific user + their claims</td></tr>
+        <tr><td>Expiration</td><td>Manual — you rotate when needed</td><td>Automatic — built-in expiry field</td></tr>
+        <tr><td>Stateless?</td><td>No — requires DB lookup</td><td>Yes — self-contained validation</td></tr>
+        <tr><td>Best for</td><td>Server-to-server, public APIs, CI/CD</td><td>User sessions, mobile apps, SPAs</td></tr>
+        <tr><td>Revocation</td><td>Delete from database instantly</td><td>Needs blocklist or wait for expiry</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">javascript — generate, store (hashed), and validate API keys</span><div class="code-dots"><div class="dot" style="background:#ff5f57"></div><div class="dot" style="background:#febc2e"></div><div class="dot" style="background:#28c840"></div></div><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+    <pre><span class="kw">const</span> crypto = <span class="fn">require</span>(<span class="str">'crypto'</span>);
+
+<span class="cm">// Generate a cryptographically secure API key</span>
+<span class="kw">function</span> <span class="fn">generateApiKey</span>() {
+  <span class="kw">return</span> <span class="str">'myapp_'</span> + crypto.<span class="fn">randomBytes</span>(<span class="num">32</span>).<span class="fn">toString</span>(<span class="str">'hex'</span>);
+  <span class="cm">// → myapp_a3f8b2d1c4e9...  (70 chars, 256 bits of entropy)</span>
+}
+
+<span class="cm">// NEVER store the raw key. Store only the SHA-256 hash.</span>
+app.<span class="fn">post</span>(<span class="str">'/api-keys'</span>, requireAuth, <span class="kw">async</span> (req, res) => {
+  <span class="kw">const</span> rawKey    = <span class="fn">generateApiKey</span>();
+  <span class="kw">const</span> hashedKey = crypto.<span class="fn">createHash</span>(<span class="str">'sha256'</span>).<span class="fn">update</span>(rawKey).<span class="fn">digest</span>(<span class="str">'hex'</span>);
+
+  <span class="kw">await</span> prisma.apiKey.<span class="fn">create</span>({ data: {
+    name: req.body.name, hash: hashedKey, userId: req.user.id
+  }});
+
+  res.<span class="fn">status</span>(<span class="num">201</span>).<span class="fn">json</span>({ key: rawKey }); <span class="cm">// show ONCE — never again</span>
+});
+
+<span class="cm">// Validate incoming requests with x-api-key header</span>
+<span class="kw">const</span> validateApiKey = <span class="kw">async</span> (req, res, next) => {
+  <span class="kw">const</span> key = req.headers[<span class="str">'x-api-key'</span>];
+  <span class="kw">if</span> (!key) <span class="kw">return</span> res.<span class="fn">status</span>(<span class="num">401</span>).<span class="fn">json</span>({ error: <span class="str">'API key required'</span> });
+
+  <span class="kw">const</span> hash   = crypto.<span class="fn">createHash</span>(<span class="str">'sha256'</span>).<span class="fn">update</span>(key).<span class="fn">digest</span>(<span class="str">'hex'</span>);
+  <span class="kw">const</span> apiKey = <span class="kw">await</span> prisma.apiKey.<span class="fn">findUnique</span>({ where: { hash } });
+  <span class="kw">if</span> (!apiKey) <span class="kw">return</span> res.<span class="fn">status</span>(<span class="num">401</span>).<span class="fn">json</span>({ error: <span class="str">'Invalid API key'</span> });
+
+  req.userId = apiKey.userId;
+  <span class="fn">next</span>();
+};</pre>
+  </div>
+
+  <div class="lesson-nav">
+    <button class="nav-btn" onclick="go(16)">← Previous</button>
+    <div class="nav-lesson-indicator">Lesson <span>18</span> of 20</div>
+    <button class="nav-btn primary" onclick="go(18)">Next: Build the API →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- LESSON 19 -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="lesson-page" id="lesson18">
+  <div class="lesson-header">
+    <div class="lesson-num-label">Lesson 19 of 20</div>
+    <span class="lesson-tag tag-project">Project</span>
+    <h1 class="lesson-title">Build the Blog API — Full Project</h1>
+    <p class="lesson-desc">Everything comes together here. A production-ready Blog API with authentication, pagination, ORM, middleware, and proper error handling — from project structure to running server.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Project Structure</div>
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">bash — folder layout</span><div class="code-dots"><div class="dot" style="background:#ff5f57"></div><div class="dot" style="background:#febc2e"></div><div class="dot" style="background:#28c840"></div></div><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      <pre>blog-api/
+├── src/
+│   ├── routes/
+│   │   ├── auth.routes.js      <span class="cm"># POST /auth/register, /auth/login, /auth/refresh</span>
+│   │   ├── posts.routes.js     <span class="cm"># CRUD /posts</span>
+│   │   └── users.routes.js     <span class="cm"># GET /users/:id, PATCH /users/:id</span>
+│   ├── controllers/
+│   │   ├── auth.controller.js
+│   │   └── posts.controller.js
+│   ├── middleware/
+│   │   ├── auth.middleware.js  <span class="cm"># requireAuth, requireRole</span>
+│   │   └── error.middleware.js <span class="cm"># global error handler</span>
+│   └── app.js                  <span class="cm"># Express setup + route mounting</span>
+├── prisma/
+│   └── schema.prisma           <span class="cm"># DB schema (User, Post, Comment)</span>
+├── .env                        <span class="cm"># secrets — never commit!</span>
+├── .env.example                <span class="cm"># template for teammates</span>
+└── package.json</pre>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Setup Commands</div>
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">bash</span><div class="code-dots"><div class="dot" style="background:#ff5f57"></div><div class="dot" style="background:#febc2e"></div><div class="dot" style="background:#28c840"></div></div><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      <pre>mkdir blog-api && cd blog-api
+npm init -y
+npm install express jsonwebtoken bcryptjs cors helmet dotenv @prisma/client express-rate-limit
+npm install -D prisma nodemon
+npx prisma init --datasource-provider postgresql</pre>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">src/app.js — Complete Server</div>
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">javascript</span><div class="code-dots"><div class="dot" style="background:#ff5f57"></div><div class="dot" style="background:#febc2e"></div><div class="dot" style="background:#28c840"></div></div><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      <pre><span class="fn">require</span>(<span class="str">'dotenv'</span>).<span class="fn">config</span>();
+<span class="kw">const</span> express     = <span class="fn">require</span>(<span class="str">'express'</span>);
+<span class="kw">const</span> cors        = <span class="fn">require</span>(<span class="str">'cors'</span>);
+<span class="kw">const</span> helmet      = <span class="fn">require</span>(<span class="str">'helmet'</span>);
+<span class="kw">const</span> rateLimit   = <span class="fn">require</span>(<span class="str">'express-rate-limit'</span>);
+<span class="kw">const</span> authRoutes  = <span class="fn">require</span>(<span class="str">'./routes/auth.routes'</span>);
+<span class="kw">const</span> postRoutes  = <span class="fn">require</span>(<span class="str">'./routes/posts.routes'</span>);
+<span class="kw">const</span> errorHandler = <span class="fn">require</span>(<span class="str">'./middleware/error.middleware'</span>);
+
+<span class="kw">const</span> app = <span class="fn">express</span>();
+
+<span class="cm">// Security middleware</span>
+app.<span class="fn">use</span>(<span class="fn">helmet</span>());
+app.<span class="fn">use</span>(<span class="fn">cors</span>({ origin: process.env.CORS_ORIGIN }));
+app.<span class="fn">use</span>(express.<span class="fn">json</span>({ limit: <span class="str">'10kb'</span> }));  <span class="cm">// limit body size</span>
+
+<span class="cm">// Rate limiting</span>
+<span class="kw">const</span> limiter = <span class="fn">rateLimit</span>({ windowMs: <span class="num">15</span> * <span class="num">60</span> * <span class="num">1000</span>, max: <span class="num">100</span> });
+app.<span class="fn">use</span>(<span class="str">'/api'</span>, limiter);
+
+<span class="cm">// Routes</span>
+app.<span class="fn">use</span>(<span class="str">'/api/v1/auth'</span>,  authRoutes);
+app.<span class="fn">use</span>(<span class="str">'/api/v1/posts'</span>, postRoutes);
+
+<span class="cm">// Health check</span>
+app.<span class="fn">get</span>(<span class="str">'/health'</span>, (req, res) => res.<span class="fn">json</span>({ status: <span class="str">'OK'</span>, ts: Date.<span class="fn">now</span>() }));
+
+<span class="cm">// 404 catch-all</span>
+app.<span class="fn">use</span>((req, res) => res.<span class="fn">status</span>(<span class="num">404</span>).<span class="fn">json</span>({ error: <span class="str">'Route not found'</span> }));
+
+<span class="cm">// Error handler (always last)</span>
+app.<span class="fn">use</span>(errorHandler);
+
+<span class="kw">const</span> PORT = process.env.PORT || <span class="num">3000</span>;
+app.<span class="fn">listen</span>(PORT, () => console.<span class="fn">log</span>(<span class="str">`🚀 Server running on port ${PORT}`</span>));</pre>
+    </div>
+  </div>
+
+  <div class="callout tip"><strong>Pattern:</strong> Routes define paths → Controllers handle logic → Middleware handles cross-cutting concerns. Each layer has one job. This makes testing and debugging significantly easier.</div>
+
+  <div class="lesson-nav">
+    <button class="nav-btn" onclick="go(17)">← Previous</button>
+    <div class="nav-lesson-indicator">Lesson <span>19</span> of 20</div>
+    <button class="nav-btn primary" onclick="go(19)">Next: Deployment →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- LESSON 20 -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="lesson-page" id="lesson19">
+  <div class="lesson-header">
+    <div class="lesson-num-label">Lesson 20 of 20</div>
+    <span class="lesson-tag tag-deploy">Deployment</span>
+    <h1 class="lesson-title">API Deployment</h1>
+    <p class="lesson-desc">The final step — taking your local API live for the world. Hosting platform selection, environment variables, and the production checklist every deployment needs.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Hosting Platform Comparison</div>
+    <div class="status-list">
+      <div class="status-row"><span class="scode s2xx">Railway</span><span class="sname">Easiest — recommended</span><span class="sdesc">Deploy from GitHub in 2 minutes. Free tier. Managed Postgres included. Perfect for side projects.</span></div>
+      <div class="status-row"><span class="scode s2xx">Render</span><span class="sname">Free + simple</span><span class="sdesc">Auto-deploy from Git. Free tier with managed PostgreSQL. Great developer experience.</span></div>
+      <div class="status-row"><span class="scode s3xx">Fly.io</span><span class="sname">Docker-based</span><span class="sdesc">Deploy containerized apps globally. More control. Very low cost. Good for APIs needing edge presence.</span></div>
+      <div class="status-row"><span class="scode s4xx">AWS / GCP</span><span class="sname">Production scale</span><span class="sdesc">Full control with EC2, Lambda, Cloud Run. Use when you need to scale to millions of requests.</span></div>
+      <div class="status-row"><span class="scode sinfo">Vercel</span><span class="sname">Serverless</span><span class="sdesc">Great for Next.js APIs. Serverless functions. Zero config. Best for frontend-heavy projects.</span></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Environment Configuration</div>
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">.env — production variables</span><div class="code-dots"><div class="dot" style="background:#ff5f57"></div><div class="dot" style="background:#febc2e"></div><div class="dot" style="background:#28c840"></div></div><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      <pre>NODE_ENV=production
+PORT=3000
+DATABASE_URL=postgresql://user:pass@host:5432/mydb?sslmode=require
+JWT_SECRET=generate-256-bit-random-secret-never-share
+REFRESH_SECRET=another-256-bit-secret-different-from-above
+CORS_ORIGIN=https://myfrontend.com</pre>
+    </div>
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">json — package.json scripts</span><div class="code-dots"><div class="dot" style="background:#ff5f57"></div><div class="dot" style="background:#febc2e"></div><div class="dot" style="background:#28c840"></div></div><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      <pre>{
+  <span class="str">"scripts"</span>: {
+    <span class="str">"start"</span>:       <span class="str">"node src/app.js"</span>,
+    <span class="str">"dev"</span>:         <span class="str">"nodemon src/app.js"</span>,
+    <span class="str">"db:push"</span>:     <span class="str">"prisma db push"</span>,
+    <span class="str">"db:migrate"</span>:  <span class="str">"prisma migrate deploy"</span>,
+    <span class="str">"db:generate"</span>: <span class="str">"prisma generate"</span>
+  }
+}</pre>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Production Security Checklist</div>
+    <div class="pill-group">
+      <div class="pill green">✓ HTTPS only</div>
+      <div class="pill green">✓ Validate all input</div>
+      <div class="pill green">✓ Rate limiting</div>
+      <div class="pill green">✓ Helmet.js headers</div>
+      <div class="pill green">✓ Env vars for secrets</div>
+      <div class="pill green">✓ Sanitize DB queries</div>
+      <div class="pill green">✓ CORS configured</div>
+      <div class="pill green">✓ Error logging</div>
+      <div class="pill red">✗ Never log passwords</div>
+      <div class="pill red">✗ No secrets in code</div>
+      <div class="pill red">✗ No .env in git</div>
+      <div class="pill red">✗ No stack traces to client</div>
+    </div>
+  </div>
+
+  <div class="instructor-section">
+    <div class="instructor-section-top">
+      <div class="instructor-avatar-lg">R</div>
+      <div>
+        <div class="instructor-section-name">About the Instructor</div>
+        <div class="instructor-section-role">Rasheed Sanni &mdash; CS Student &amp; Tech Educator</div>
+      </div>
+    </div>
+    <div class="instructor-section-bio">
+      I&rsquo;m on a mission to pioneer technology education across Africa by making complex topics genuinely simple. If this course helped you, share it with someone who&rsquo;s learning. More courses on Backend Dev, Fintech, DevOps, and AI are on the way.
+    </div>
+    <div class="courses-grid">
+      <div class="course-pill"><span>💻</span> Backend Dev</div>
+      <div class="course-pill"><span>💰</span> Fintech &amp; Blockchain</div>
+      <div class="course-pill"><span>⚙️</span> DevOps</div>
+      <div class="course-pill"><span>🤖</span> AI &amp; Machine Learning</div>
+    </div>
+    <div class="contact-row">
+      <a class="contact-btn x" href="https://x.com/yuno_x999" target="_blank" rel="noopener">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+        Follow on X &rarr;
+      </a>
+      <a class="contact-btn mail" href="mailto:rasheedsanni3@gmail.com">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+        Partnership enquiries
+      </a>
+    </div>
+  </div>
+
+    <div class="finish-banner">
+    <h3>🎉 Course Complete!</h3>
+    <p>You now know REST API design, Express.js, middleware, JWT authentication, ORM, pagination, and deployment. You have everything needed to build production-grade APIs.<br><br><strong>Build something real</strong> — the best way to cement this knowledge is a project you care about.</p>
+  </div>
+
+  <div class="lesson-nav">
+    <button class="nav-btn" onclick="go(18)">← Previous</button>
+    <div class="nav-lesson-indicator">Lesson <span>20</span> of 20 — Done!</div>
+    <button class="nav-btn" onclick="go(0)" style="background:var(--surface3)">↩ Start Over</button>
+  </div>
+</div>
+
+</main>
+</div>
+</div>
+
+<script>
+let current = 0;
+const total = 20;
+const visited = new Set([0]);
+
+function go(n) {
+  // mark old as done
+  const oldBtn = document.getElementById('btn' + current);
+  if (current !== n) {
+    oldBtn.classList.remove('active');
+    oldBtn.classList.add('done');
+  }
+  document.getElementById('lesson' + current).classList.remove('active');
+
+  current = n;
+  visited.add(n);
+
+  document.getElementById('lesson' + n).classList.add('active');
+  const newBtn = document.getElementById('btn' + n);
+  newBtn.classList.add('active');
+  newBtn.classList.remove('done');
+
+  // progress
+  const pct = Math.round(((n + 1) / total) * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('lessonCounter').textContent = n + 1;
+
+  // scroll to top
+  document.getElementById('contentArea').scrollTo({ top: 0, behavior: 'smooth' });
+
+  // save to localStorage
+  try { localStorage.setItem('apiCourseLesson', n); } catch(e) {}
+}
+
+// restore progress
+try {
+  const saved = localStorage.getItem('apiCourseLesson');
+  if (saved !== null && parseInt(saved) > 0) {
+    const s = parseInt(saved);
+    for (let i = 0; i < s; i++) {
+      document.getElementById('btn' + i).classList.add('done');
+    }
+    go(s);
+  }
+} catch(e) {}
+
+// copy code
+function copyCode(btn) {
+  const pre = btn.closest('.code-block').querySelector('pre');
+  const text = pre.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+  }).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta);
+    ta.select(); document.execCommand('copy');
+    document.body.removeChild(ta);
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+// keyboard navigation
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  if (e.key === 'ArrowRight' && current < total - 1) go(current + 1);
+  if (e.key === 'ArrowLeft'  && current > 0)         go(current - 1);
+});
+</script>
+</body>
+</html>
